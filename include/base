@@ -1,0 +1,207 @@
+BASE 1:
+    En:
+        input = 0 0 1 1 | 1 1 0 0 // one byte
+                ~ = ~ = ...
+        output[8] = { 0 }
+            output[0] = (input >> 0x7) & 0x1
+            output[1] = (input >> 0x6) & 0x1
+            output[2] = (input >> 0x5) & 0x1
+            output[3] = (input >> 0x4) & 0x1
+            output[4] = (input >> 0x3) & 0x1
+            output[5] = (input >> 0x2) & 0x1
+            output[6] = (input >> 0x1) & 0x1
+            output[7] = (input >> 0x0) & 0x1
+
+    De:
+        input = [A, B, C, D, E, F, G, H] // eight bytes
+        output[1] = { 0 }
+            output[0] |= (input[0] & 0x1) << 0x7
+            output[0] |= (input[1] & 0x1) << 0x6
+            output[0] |= (input[2] & 0x1) << 0x5
+            output[0] |= (input[3] & 0x1) << 0x4
+            output[0] |= (input[4] & 0x1) << 0x3
+            output[0] |= (input[5] & 0x1) << 0x2
+            output[0] |= (input[6] & 0x1) << 0x1
+            output[0] |= (input[7] & 0x1) << 0x0
+
+
+BASE 2:
+    En:
+        input = 0 0 1 1 | 1 1 0 0 // one byte
+                ~~~ ==== ...
+        output[4] = { 0 }
+            output[0] = (input >> 0x6) & 0x3
+            output[1] = (input >> 0x4) & 0x3
+            output[2] = (input >> 0x2) & 0x3
+            output[3] = (input >> 0x0) & 0x3
+
+    De:
+        input = [A, B, C, D] // four bytes
+        output[1] = { 0 }
+            output[0] |= (input[0] << 0x6) & 0xC0
+            output[0] |= (input[1] << 0x4) & 0x30
+            output[0] |= (input[2] << 0x2) & 0x0C
+            output[0] |= (input[3] << 0x0) & 0x03
+
+
+BASE 3:
+    En:
+        input = [ 0 0 1 1 | 1 1 0 0,
+                  ~~~~~ ======= ...
+                  1 1 0 0 | 0 0 1 1,
+                  0 1 0 1 | 1 0 1 0 ]
+        output[8] = { 0 }
+
+            output[0] = (input[0] >> 0x5) & 0x7
+            output[1] = (input[0] >> 0x2) & 0x7
+            output[2] = (input[0] >> 0x0) & 0x3 | (input[1] >> 7) & 0x1
+            output[3] = (input[1] >> 0x4) & 0x7
+            output[4] = (input[1] >> 0x1) & 0x7
+            output[5] = (input[1] >> 0x0) & 0x1 | (input[2] >> 6) & 0x3
+            output[6] = (input[2] >> 0x3) & 0x7
+            output[7] = (input[2] >> 0x0) & 0x7
+
+    De:
+        input = [A, B, C, D, E, F, G, H] // eight bytes
+        output[3] = { 0 } // three bytes
+
+            output[0] |= (input[0] << 0x5) & 0xE0
+            output[0] |= (input[1] << 0x2) & 0x1C
+            output[0] |= (input[2] >> 0x1) & 0x03
+
+            output[1] |= (input[2] << 0x7) & 0x80
+            output[1] |= (input[3] << 0x4) & 0x70
+            output[1] |= (input[4] << 0x1) & 0x0C
+            output[1] |= (input[5] >> 0x2) & 0x01
+            
+            output[2] |= (input[5] << 0x6) & 0xC0
+            output[2] |= (input[6] << 0x3) & 0x38
+            output]2] |= (input[7] >> 0x0) & 0x07
+
+
+BASE 4:
+    En:
+        input = 0 0 1 1 | 1 1 0 0 // one byte
+                ~~~~~~~~ =========
+        output[2] = { 0 }
+            output[0] = (input >> 0x4) & 0xF
+            output[1] = (input >> 0x0) & 0xF
+
+    De:
+        input = [A, B] // two bytes
+        output[1] = { 0 }
+            output[0] |= (input[0] << 4) & 0xF0
+            output[0] |= (input[0] << 0) & 0x0F
+
+
+BASE 5:
+    En:
+        input = [ 0 0 1 1 | 1 1 0 0,
+                  ~~~~~~~~~~~ ======
+                  1 1 0 0 | 0 0 1 1,
+                  === ~~~~~~~~~~~ ...
+                  1 0 1 0 | 0 1 0 1,
+                  1 0 0 1 | 0 1 1 0,
+                  0 1 1 0 | 1 0 0 1 ] // five bytes
+        output[8] = { 0 }
+            output[0] = (input[0] >> 0x3) & 0x1F
+            output[1] = (input[0] << 0x2) & 0x1F | (input[1] >> 0x6) & 0x03
+            output[2] = (input[1] >> 0x1) & 0x1F
+            output[3] = (input[1] << 0x4) & 0x1F | (input[2] >> 0x4) & 0x0F
+            output[4] = (input[2] << 0x1) & 0x1F | (input[3] >> 0x7) & 0x01
+            output[5] = (input[3] >> 0x3) & 0x1F
+            output[6] = (input[3] << 0x3) & 0x1F | (input[4] >> 0x5) & 0x07
+            output[7] = (input[4] >> 0x0) & 0x1F
+
+    De:
+        input = [A, B, C, D, E, F, G, H]
+        output[5] = { 0 }
+            output[0] |= (input[0] << 0x3) & 0xF8
+            output[0] |= (input[1] >> 0x2) & 0x07
+ 
+            output[1] |= (input[1] << 0x6) & 0xC0
+            output[1] |= (input[2] << 0x1) & 0x3E
+            output[1] |= (input[3] >> 0x4) & 0x01
+ 
+            output[2] |= (input[3] << 0x4) & 0xF0
+            output[2] |= (input[4] >> 0x1) & 0x0F
+ 
+            output[3] |= (input[4] << 0x7) & 0x80
+            output[3] |= (input[5] << 0x2) & 0x7C
+            output[3] |= (input[6] >> 0x3) & 0x03
+ 
+            output[4] |= (input[6] << 0x5) & 0xE0
+            output[4] |= (input[7] >> 0x0) & 0x1F
+
+
+BASE 6:
+    En:
+        input = [ 0 0 1 1 | 1 1 0 0,
+                  ~~~~~~~~~~~~~ ====
+                  1 1 0 0 | 0 0 1 1,
+                  ========  ~~~~~~~~
+                  1 0 0 1 | 0 1 1 0 ] // three bytes
+                  ~~~ =============
+        output[4] = { 0 }
+            output[0] = (input[0] >> 0x2) & 0x3F
+            output[1] = (input[0] << 0x4) & 0x3F | (input[1] >> 0x4) & 0xF
+            output[2] = (input[1] << 0x2) & 0x3F | (input[2] >> 0x6) & 0x3
+            output[3] = (input[2] >> 0x0) & 0x3F
+
+    De:
+        input = [A, B, C, D]
+        output[3] = { 0 }
+            input[0] |= (input[0] << 0x2) & 0xFC
+            input[0] |= (input[1] << 0x0) & 0x30
+            input[1] |= (input[1] << 0x4) & 0xF0
+            input[1] |= (input[2] >> 0x2) & 0x0F
+            input[2] |= (input[2] << 0x0) & 0x0F
+            input[2] |= (input[2] >> 0x0) & 0x3F
+
+
+BASE 7:
+    En:
+        input = [ 0 0 1 1 | 1 1 0 0,
+                  ~~~~~~~~~~~~~~~ ==
+                  1 1 0 0 | 0 0 1 1,
+                  ============= ~~~
+                  1 0 0 1 | 0 1 1 0,
+                  =========== ...
+                  1 0 1 0 | 0 1 0 1,
+                  1 1 1 0 | 0 1 1 1,
+                  0 0 0 1 | 1 1 1 0,
+                  1 1 0 1 | 0 0 1 0,
+                  1 1 1 1 | 0 0 0 0 ] //seven bytes
+        output[8] = { 0 }
+            output[0] = (input[0] >> 0x1) & 0x7F
+            output[1] = (input[0] << 0x6) & 0x7F | (input[1] >> 0x2) & 0x3F
+            output[2] = (input[1] << 0x5) & 0x7F | (input[2] >> 0x3) & 0x1F
+            output[3] = (input[2] << 0x4) & 0x7F | (input[3] >> 0x4) & 0x0F
+            output[4] = (input[3] << 0x3) & 0x7F | (input[4] >> 0x5) & 0x07
+            output[5] = (input[4] << 0x2) & 0x7F | (input[5] >> 0x6) & 0x03
+            output[6] = (input[5] << 0x1) & 0x7F | (input[6] >> 0x7) & 0x01
+            output[7] = (input[6] << 0x0) & 0x7F
+
+    De:
+        input = [A, B, C, D, E, F, G, H]
+        output[7] = { 0 }
+            output[0] |= (input[0] << 0x1) & 0xFE
+            output[0] |= (input[1] >> 0x6) & 0x01
+
+            output[1] |= (input[1] << 0x2) & 0xFC
+            output[1] |= (input[2] >> 0x5) & 0x03
+
+            output[2] |= (input[2] << 0x3) & 0xF8
+            output[2] |= (input[3] >> 0x4) & 0x07
+
+            output[3] |= (input[3] << 0x4) & 0xF0
+            output[3] |= (input[4] >> 0x3) & 0x0F
+
+            output[4] |= (input[4] << 0x5) & 0xE0
+            output[4] |= (input[5] >> 0x2) & 0x1F
+
+            output[5] |= (input[5] << 0x6) & 0xC0
+            output[5] |= (input[6] >> 0x1) & 0x3F
+
+            output[6] |= (input[6] << 0x7) & 0x80
+            output[6] |= (input[7] >> 0x0) & 0x7F
