@@ -9,6 +9,7 @@ set(CMAKE_CXX_STANDARD 14)
 
 add_executable(
         baseN
+        include/baseN.h
         src/main.cpp
-        include/bytes.h
+        src/baseN.cpp
 )

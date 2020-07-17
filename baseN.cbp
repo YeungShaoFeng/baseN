@@ -66,7 +66,10 @@
 				</MakeCommands>
 			</Target>
 		</Build>
-		<Unit filename="/Users/linxi/code/baseN/include/bytes.h">
+		<Unit filename="/Users/linxi/code/baseN/include/baseN.h">
+			<Option target="baseN"/>
+		</Unit>
+		<Unit filename="/Users/linxi/code/baseN/src/baseN.cpp">
 			<Option target="baseN"/>
 		</Unit>
 		<Unit filename="/Users/linxi/code/baseN/src/main.cpp">
