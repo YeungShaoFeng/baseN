@@ -5,6 +5,8 @@
 
 using namespace std;
 
+#define encrypt_choice_step         6
+#define decrypt_choice_step         5
 #define encrypt_input_size          7 + 1
 #define encrypt_output_size         8 + 1
 #define decrypt_input_size          8 + 1
@@ -14,23 +16,32 @@ unsigned char deresin[decrypt_input_size] = {0};
 unsigned char enresout[encrypt_output_size] = {0};
 unsigned char deresout[decrypt_output_size] = {0};
 
-unsigned char Or(unsigned char a, unsigned char b, bool willDoOr);
-
-unsigned char Or(unsigned char a, unsigned char b);
-
-unsigned char And(unsigned char a, BYTE _byte);
-
 unsigned char shift(unsigned char a, SD sd, BYTE _byte);
 
 unsigned char *Encrypt(unsigned char *input, int base_choice);
 
-unsigned char En_step(unsigned char a, SD sd, BYTE SB, BYTE AB);
+unsigned char *Decrypt(unsigned char *input, int base_choice);
+
+unsigned char process_step(unsigned char a, SD sd, BYTE SB, BYTE AB);
 
 int main() {
-    unsigned char tmp[] = {0x88};
-    Encrypt(tmp, 0);
-    for (unsigned char i : enresout) {
-        printf("%#X\n", i);
+    unsigned char tmp = 0xF0;
+    unsigned char test[] = {tmp, tmp, tmp, tmp, tmp, tmp, tmp, 0x0};
+//    unsigned char test[] = "abcdefg";
+    for (int choice = 1; choice < 8; choice++) {
+        Encrypt(test, choice);
+        Decrypt(enresout, choice);
+
+        cout << "=============choice: {" << choice << "}==============" << endl;
+        for (unsigned char i : enresout) {
+            printf("%#x\t", i);
+        }
+        cout << endl << "--------------------------" << endl;
+//        cout << deresout << endl;
+        for (unsigned char i : deresout) {
+            printf("%#x\t", i);
+        }
+        cout << endl << "===============================" << endl;
     }
     return 0;
 }
@@ -63,51 +74,60 @@ int main() {
 
 unsigned char *Encrypt(unsigned char *input, int base_choice) {
     unsigned char const *choice = base_choices[base_choice];
-    memset(enresout, 0, choice[1] + 1);
+    memset(enresout, 0, encrypt_output_size);
 
-    unsigned char counter = 0, nextCounter = 0;
-    unsigned char tmp1 = 0, tmp2 = 0;
-
-    unsigned char looper = choice[0];
-    for (int i = 0; i < looper; i++) {
-        counter = i * 5 + 2;
-        enresout[i] = En_step(input[choice[counter + 1]], (SD) choice[counter + 2], (BYTE) choice[counter + 3],
-                              (BYTE) choice[counter + 4]);
-        nextCounter = (i + 1) * 5 + 2;
-        if (nextCounter == 255u) {
-            enresout[i] |= En_step(input[choice[nextCounter + 1]], (SD) choice[nextCounter + 2],
-                                   (BYTE) choice[nextCounter + 3], (BYTE) choice[nextCounter + 4]);
-            i++;
+    unsigned char big_steps = choice[0];
+    int currentPos = 2;
+    for (int i = 0; i < big_steps; i++) {
+        enresout[choice[currentPos + 1]] = process_step(input[choice[currentPos + 2]],
+                                                        (SD) choice[currentPos + 3],
+                                                        (BYTE) choice[currentPos + 4],
+                                                        (BYTE) choice[currentPos + 5]);
+        currentPos += encrypt_choice_step;
+        if (choice[currentPos] == 255u) {
+            enresout[choice[currentPos + 1]] |= process_step(input[choice[currentPos + 2]],
+                                                             (SD) choice[currentPos + 3],
+                                                             (BYTE) choice[currentPos + 4],
+                                                             (BYTE) choice[currentPos + 5]);
+            currentPos += encrypt_choice_step;
         }
     }
 
     return enresout;
 }
 
-unsigned char En_step(unsigned char a, SD sd, BYTE SB, BYTE AB) {
+//sd
+unsigned char process_step(unsigned char a, SD sd, BYTE SB, BYTE AB) {
     return shift(a, sd, SB) & AB;
 }
 
 unsigned char *Decrypt(unsigned char *input, int base_choice) {
     unsigned char const *choice = base_choices[base_choice];
-    unsigned char looper = choice[0] *
+    memset(deresout, 0, decrypt_output_size);
 
+    unsigned char total_stepsIndex = choice[0] * encrypt_choice_step
+                                     + choice[1] * (encrypt_choice_step)
+                                     + 2;
+    unsigned char total_steps = choice[total_stepsIndex];
+    unsigned char time_repeated = 0, currentPos = total_stepsIndex;
 
+    currentPos += 2;// point to the time_repeated
+    for (unsigned char i = 0; i < total_steps; i++) {
+        time_repeated = choice[currentPos++];
+        for (unsigned char j = 0; j < time_repeated; j++) {
+            deresout[choice[currentPos]] |= process_step(input[choice[currentPos + 1]],
+                                                         (SD) choice[currentPos + 2],
+                                                         (BYTE) choice[currentPos + 3],
+                                                         (BYTE) choice[currentPos + 4]);
+            currentPos += decrypt_choice_step;
+        }
+    }
 
     return deresout;
 }
 
-
 unsigned char shift(unsigned char a, SD sd, BYTE _byte) {
     return sd ? a >> _byte : a << _byte;
-}
-
-unsigned char And(unsigned char a, BYTE _byte) {
-    return a & _byte;
-}
-
-unsigned char Or(unsigned char a, unsigned char b, bool willDoOr) {
-    return willDoOr ? a | b : a;
 }
 
 unsigned char Or(unsigned char a, unsigned char b) {
